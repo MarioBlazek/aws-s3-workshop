@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-Create and [AWS](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?nc2=h_ct&src=header_signup) account. When you are successfuly registered, open the IAM console and create the a new user with the [AWS access](https://repost.aws/knowledge-center/create-access-key) key.
+Create an [AWS](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?nc2=h_ct&src=header_signup) account. When you are successfuly registered, open the IAM console and create the a new user with the [AWS access](https://repost.aws/knowledge-center/create-access-key) key.
 
 Now, copy AWS CLI config and credential files from the `.aws` directory in the root of the project and update them accordingly.
 
@@ -24,8 +24,6 @@ Replace the `PUT_YOUR_ACCESS_KEY_HERE` and `PUT_YOUR_SECRET_KEY_HERE` with the r
 aws_access_key_id = PUT_YOUR_ACCESS_KEY_HERE
 aws_secret_access_key = PUT_YOUR_SECRET_KEY_HERE
 ```
-
-Done.
 
 ## Setup
 
