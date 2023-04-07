@@ -43,8 +43,5 @@ And then run the Docker image that we've built in the previous step:
 docker run -p 8080:80 aws-s3-workshop-app
 ```
 
-
-## Endpoints
-
-WIP.
+Finally, open your browser with this URL [http://localhost:8080/docs](http://localhost:8080/docs) and you are ready to go.
 

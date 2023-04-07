@@ -1,47 +1,46 @@
 from typing import List
-from datetime import datetime
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, HTTPException
 from boto3 import client
-from pydantic import BaseModel
+from app.responses import AwsS3Bucket
+from app.responses import AwsAccount
+from app.responses import AwsS3Object
+from app.requests import AwsS3ObjectKey
 import shutil
 import os
 from starlette.responses import FileResponse
 import hashlib
 
 app = FastAPI(title="AWS S3 Workshop API", description="Example AWS S3 endpoints to showcase what can be done.",
-              version="0.0.1")
+              version="0.0.1",
+              contact={
+                  "name": "Mario Blazek",
+                  "url": "https://github.com/marioblazek",
+                  "email": "blazek.mario@gmail.com",
+              },
+              license_info={
+                  "name": "Apache 2.0",
+                  "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+              },
+              )
 s3 = client('s3')
 sts = client('sts')
 bucket_name = 'marek-testing-bucket'
 
-
-class AwsAccount(BaseModel):
-    id: str
-    arn: str
-    user_id: str
-
-
-class AwsS3Object(BaseModel):
-    name: str
-    size: int
+tags_metadata = [
+    {
+        "name": "S3",
+        "description": "Some description",
+    }
+]
 
 
-class AwsS3ObjectKey(BaseModel):
-    key: str
-
-
-class AwsS3Bucket(BaseModel):
-    name: str
-    created: datetime
-
-
-@app.get("/")
+@app.get("/", tags=["S3"])
 def show_welcome_message():
     """Welcome endpoint"""
     return {"Hi": "Welcome to AWS workshop #3. Today we are showcasing the S3 service. Enjoy"}
 
 
-@app.get("/about/me")
+@app.get("/about/me", tags=["S3"])
 def show_current_user_information() -> AwsAccount:
     """Just a simple about me route"""
     identity = sts.get_caller_identity()
@@ -51,7 +50,7 @@ def show_current_user_information() -> AwsAccount:
     return AwsAccount(id=identity['Account'], arn=identity['Arn'], user_id=identity['UserId'])
 
 
-@app.get("/bucket")
+@app.get("/bucket", tags=["S3"])
 def list_bucket_contents(limit: int = 10) -> List[AwsS3Object]:
     """Simple bucket listing"""
     paginator = s3.get_paginator('list_objects')
@@ -68,17 +67,20 @@ def list_bucket_contents(limit: int = 10) -> List[AwsS3Object]:
     return objects
 
 
-@app.get("/bucket/{object_id}")
+@app.get("/bucket/{object_id}", tags=["S3"])
 def retrieve_specific_object_from_a_bucket(object_id: str) -> FileResponse:
     """Download an S3 object"""
     file_location = '/tmp/' + object_id
 
-    s3.download_file(bucket_name, object_id, file_location)
+    try:
+        s3.download_file(bucket_name, object_id, file_location)
 
-    return FileResponse(file_location, media_type='application/octet-stream', filename=object_id)
+        return FileResponse(file_location, media_type='application/octet-stream', filename=object_id)
+    except:
+        raise HTTPException(status_code=404, detail="Object not found")
 
 
-@app.post("/bucket")
+@app.post("/bucket", tags=["S3"])
 def upload_object_to_bucket(file: UploadFile):
     """Uploads a file to the S3"""
 
@@ -97,7 +99,7 @@ def upload_object_to_bucket(file: UploadFile):
     return {"filename": full_file_name}
 
 
-@app.delete("/bucket")
+@app.delete("/bucket", tags=["S3"])
 def delete_bucket_item(key: AwsS3ObjectKey):
     """Deletes a specified S3 object. Or if given object doesn't exist, just silently fails."""
 
@@ -106,7 +108,7 @@ def delete_bucket_item(key: AwsS3ObjectKey):
     return {}
 
 
-@app.get("/list/buckets")
+@app.get("/list/buckets", tags=["S3"])
 def list_buckets() -> List[AwsS3Bucket]:
     """List all AWS Buckets that this account has permission to see"""
     s3buckets = s3.list_buckets()
